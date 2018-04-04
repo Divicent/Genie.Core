@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Genie.Core.Infrastructure.Filters.Abstract;
@@ -15,14 +14,12 @@ namespace Genie.Core.Infrastructure
     public abstract class Repository<T> : IRepository<T>
         where T : BaseModel 
     {
-        public IDbConnection Conn { get; }
         public IDBContext Context { get;}
         private IUnitOfWork UnitOfWork { get;}
 
         protected Repository(IDBContext context, IUnitOfWork unitOfWork)
         {
             Context = context;
-            Conn = Context.Connection;
             UnitOfWork = unitOfWork;
         }
 
@@ -30,20 +27,20 @@ namespace Genie.Core.Infrastructure
         {
             if (entity == null)
             {
-                throw new ArgumentNullException("entity", "Add to DB null entity");
+                throw new ArgumentNullException(nameof(entity), "Add to DB null entity");
             }
             
-            entity.DatabaseUnitOfWork = UnitOfWork;           
+            entity.__DatabaseUnitOfWork = UnitOfWork;           
             var operation = new Operation(OperationType.Add, entity);
             UnitOfWork.AddOp(operation);    
-            entity.DatabaseModelStatus = ModelStatus.ToAdd;  
+            entity.__DatabaseModelStatus = ModelStatus.ToAdd;  
         }
 
         public virtual void Add(IEnumerable<T> entities, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (entities == null)
             {
-                throw new ArgumentNullException("entities", "Add to DB null entity");
+                throw new ArgumentNullException(nameof(entities), "Add to DB null entity");
             }
             
             foreach(var entity in entities)
@@ -54,7 +51,7 @@ namespace Genie.Core.Infrastructure
         {
             if (entity == null)
             {
-                throw new ArgumentNullException("entity", "Remove in DB null entity");
+                throw new ArgumentNullException(nameof(entity), "Remove in DB null entity");
             }
             
             var operation = new Operation(OperationType.Remove, entity);
@@ -65,7 +62,7 @@ namespace Genie.Core.Infrastructure
         {
             if (entities == null)
             {
-                throw new ArgumentNullException("entities", "Remove in DB null entity");
+                throw new ArgumentNullException(nameof(entities), "Remove in DB null entity");
             }
 
             foreach(var entity in entities)
@@ -74,9 +71,9 @@ namespace Genie.Core.Infrastructure
 
         public virtual IEnumerable<T> Get(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                var items = connection.Query<T>(new QueryBuilder(query).Get()).ToList();
+                var items = connection.Query<T>(new QueryBuilder(query, Context.QueryStrategy).Get()).ToList();
                 foreach (var item in items)
                     AddItemToUnit(item);
                 return items;    
@@ -85,9 +82,9 @@ namespace Genie.Core.Infrastructure
 
         public virtual async Task<IEnumerable<T>> GetAsync(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                var items = (await connection.QueryAsync<T>(new QueryBuilder(query).Get())).ToList();
+                var items = (await connection.QueryAsync<T>(new QueryBuilder(query, Context.QueryStrategy).Get())).ToList();
                 foreach (var item in items)
                     AddItemToUnit(item);
                 return items;    
@@ -96,9 +93,9 @@ namespace Genie.Core.Infrastructure
 
 		public virtual T GetFirstOrDefault(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                var item = connection.QuerySingleOrDefault<T>(new QueryBuilder(query).Get());
+                var item = connection.QuerySingleOrDefault<T>(new QueryBuilder(query, Context.QueryStrategy).Get());
                 if(item == null)
                     return null;
                 AddItemToUnit(item);
@@ -108,9 +105,9 @@ namespace Genie.Core.Infrastructure
 
         public virtual async Task<T> GetFirstOrDefaultAsync(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                var item = await connection.QuerySingleOrDefaultAsync<T>(new QueryBuilder(query).Get());
+                var item = await connection.QuerySingleOrDefaultAsync<T>(new QueryBuilder(query, Context.QueryStrategy).Get());
                 if(item == null)
                     return null;
                 AddItemToUnit(item);
@@ -120,47 +117,47 @@ namespace Genie.Core.Infrastructure
 
         public virtual int Count(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                return  connection.ExecuteScalar<int>(new QueryBuilder(query).Count());
+                return  connection.ExecuteScalar<int>(new QueryBuilder(query, Context.QueryStrategy).Count());
             }
         }
 
         public virtual async Task<int> CountAsync(IRepoQuery query)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                return await connection.ExecuteScalarAsync<int>(new QueryBuilder(query).Count());
+                return await connection.ExecuteScalarAsync<int>(new QueryBuilder(query, Context.QueryStrategy).Count());
             }
         }
 
 
         public virtual TA SumBy<TA>(IRepoQuery query, string column)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                return  connection.ExecuteScalar<TA>(new QueryBuilder(query).SumBy(column));
+                return  connection.ExecuteScalar<TA>(new QueryBuilder(query, Context.QueryStrategy).SumBy(column));
             }
         }
 
 
         public virtual async Task<TA> SumByAsync<TA>(IRepoQuery query, string column)
         {
-            using (var connection = new SqlConnection(Conn.ConnectionString))
+            using (var connection = Context.GetConnection())
             {
-                return await connection.ExecuteScalarAsync<TA>(new QueryBuilder(query).SumBy(column));
+                return await connection.ExecuteScalarAsync<TA>(new QueryBuilder(query, Context.QueryStrategy).SumBy(column));
             }
         }
 
 		public string GetWhereClause(IRepoQuery query) 
 		{
-			return new QueryBuilder(query).WhereClause();
+			return new QueryBuilder(query, Context.QueryStrategy).WhereClause();
 		}
 
 		private void AddItemToUnit(T item) 
 		{
-			item.DatabaseUnitOfWork = UnitOfWork;
-            item.DatabaseModelStatus = ModelStatus.Retrieved;
+			item.__DatabaseUnitOfWork = UnitOfWork;
+            item.__DatabaseModelStatus = ModelStatus.Retrieved;
             UnitOfWork.AddObj(item);
 		}
     }

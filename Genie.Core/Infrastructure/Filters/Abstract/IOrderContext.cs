@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Genie.Core.Infrastructure.Filters.Concrete;
 
 namespace Genie.Core.Infrastructure.Filters.Abstract
 {
@@ -8,20 +9,15 @@ namespace Genie.Core.Infrastructure.Filters.Abstract
 	public interface IOrderContext
     {
         /// <summary>
-        /// Adds an and condition
-        /// </summary>
-        void And();
-        
-        /// <summary>
         /// Adds a custom expression
         /// </summary>
         /// <param name="expression">Expression to apply</param>
-        void Add(string expression);
+        void Add(OrderExpression expression);
         
         /// <summary>
         /// Current expressions as a Queue
         /// </summary>
-        Queue<string> GetOrderExpressions();
+        Queue<OrderExpression> GetOrderExpressions();
     }
 }
 

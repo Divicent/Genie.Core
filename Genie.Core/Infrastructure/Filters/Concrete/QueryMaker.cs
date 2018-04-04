@@ -1,113 +1,76 @@
-using System.Linq;
+using System;
 
 namespace Genie.Core.Infrastructure.Filters.Concrete
 {
     internal static class QueryMaker
     {
-        internal static string EqualsTo(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] = {2}{1}{2}", propertyName, value, quoted ? "'":"");
-        }
+        internal static FilterExpression EqualsTo(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.EqualsTo, value, quote);
 
-        internal static string NotEquals(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] != {2}{1}{2}", propertyName, value, quoted ? "'" : "");
-        }
+        internal static FilterExpression NotEquals(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.NotEqualsTo, value, quote);
 
-        internal static string Contains(string propertyName, object value)
-        {
-            return string.Format("[{0}] LIKE '%{1}%'", propertyName, value);
-        }
+        internal static FilterExpression Contains(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.Contains, value, true);
 
-        internal static string NotContains(string propertyName, object value)
-        {
-            return string.Format("[{0}] NOT LIKE '%{1}%'", propertyName, value);
-        }
+        internal static FilterExpression NotContains(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.NotContains, value, true);
 
-        internal static string StartsWith(string propertyName, object value)
-        {
-            return string.Format("[{0}] LIKE '{1}%'", propertyName, value);
-        }
+        internal static FilterExpression StartsWith(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.StartsWith, value, true);
 
-        internal static string NotStartsWith(string propertyName, object value)
-        {
-            return string.Format("[{0}] NOT LIKE '{1}%'", propertyName, value);
-        }
+        internal static FilterExpression NotStartsWith(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.NotStartsWith, value, true);
 
-        internal static string EndsWith(string propertyName, object value)
-        {
-            return string.Format("[{0}] LIKE '%{1}'", propertyName, value);
-        } 
+        internal static FilterExpression EndsWith(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.EndsWith, value, true);
 
-        internal static string NotEndsWith(string propertyName, object value)
-        {
-            return string.Format("[{0}] NOT LIKE '%{1}'", propertyName, value);
-        }
+        internal static FilterExpression NotEndsWith(string propertyName, object value)
+            => Get(propertyName, FilterExpressionType.NotEndsWith, value, true);
 
-        internal static string IsEmpty(string propertyName)
-        {
-            return string.Format("[{0}] = ''", propertyName);
-        }
+        internal static FilterExpression IsEmpty(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsEmpty, null, false);
 
-        internal static string IsNotEmpty(string propertyName)
-        {
-            return string.Format("[{0}] != ''", propertyName);
-        }
+        internal static FilterExpression IsNotEmpty(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsNotEmpty, null, false);
+      
+        internal static FilterExpression IsNull(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsNull, null, false);
+        
+        internal static FilterExpression IsNotNull(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsNotNull, null, false);
 
-        internal static string IsNull(string propertyName)
-        {
-            return string.Format("[{0}] IS NULL", propertyName);
-        }
+        internal static FilterExpression GreaterThan(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.GreaterThan, value, quote);
 
-        internal static string IsNotNull(string propertyName)
-        {
-            return string.Format("[{0}] IS NOT NULL", propertyName);
-        }
+        internal static FilterExpression LessThan(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.LessThan, value, quote);
 
-        internal static string GreaterThan(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] > {2}{1}{2}", propertyName, value, quoted ? "'" : "");
-        }
+        internal static FilterExpression GreaterThanOrEquals(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.GreaterThanOrEquals, value, quote);
+        
+        internal static FilterExpression LessThanOrEquals(string propertyName, object value, bool quote)
+            => Get(propertyName, FilterExpressionType.LessThanOrEqual, value, quote);
 
-        internal static string LessThan(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] < {2}{1}{2}", propertyName, value, quoted ? "'" : "");
-        }
+        internal static FilterExpression Between(string propertyName, object from, object to, bool quote)
+            => Get(propertyName, FilterExpressionType.Between, new Tuple<object, object>(from, to), quote);
 
-        internal static string GreaterThanOrEquals(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] >= {2}{1}{2}", propertyName, value, quoted ? "'" : "");
-        }
+        internal static FilterExpression IsTrue(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsTrue, null, false);
+        
+        internal static FilterExpression IsFalse(string propertyName)
+            => Get(propertyName, FilterExpressionType.IsFalse, null, false);
 
-        internal static string LessThanOrEquals(string propertyName, object value, bool quoted)
-        {
-            return string.Format("[{0}] <= {2}{1}{2}", propertyName, value, quoted ? "'" : "");
-        }
+        internal static FilterExpression In(string propertyName, object[] values, bool quote)
+            => Get(propertyName, FilterExpressionType.In, values, quote);
 
-        internal static string Between(string propertyName, object from, object to, bool quoted)
-        {
-            return string.Format("([{0}] >= {2}{1}{2} AND [{0}] <= {2}{3}{2})", propertyName, from, quoted ? "'" : "", to);
-        }
+        internal static FilterExpression NotIn(string propertyName, object[] values, bool quote)
+            => Get(propertyName, FilterExpressionType.NotIn, values, quote);
 
-        internal static string IsTrue(string propertyName)
-        {
-            return string.Format("[{0}] = 1", propertyName);
-        }
-
-        internal static string IsFalse(string propertyName)
-        {
-            return string.Format("[{0}] = 0", propertyName);
-        }
-
-        internal static string In(string propertyName, object[] values, bool quoted)
-        {
-            return string.Format("[{0}] IN({1})", propertyName, values.Aggregate("", (c, n) => c + string.Format(",{1}{0}{1}", n, quoted ? "'" : "")).TrimStart(','));
-        }
-
-        internal static string NotIn(string propertyName, object[] values, bool quoted)
-        {
-            return string.Format("[{0}] NOT IN({1})", propertyName, values.Aggregate("", (c, n) => c + string.Format(",{1}{0}{1}", n, quoted ? "'" : "")).TrimStart(','));
-        }
+        private static FilterExpression Get(string colum, FilterExpressionType type, object value, bool quote) => new FilterExpression(colum, type, value, quote);
     }
+    
 }
+
+
 

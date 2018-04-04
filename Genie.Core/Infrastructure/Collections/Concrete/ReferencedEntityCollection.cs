@@ -9,13 +9,13 @@ using Genie.Core.Infrastructure.Models;
 
 namespace Genie.Core.Infrastructure.Collections.Concrete
 {
-    internal class ReferencedEntityCollection<T> : IReferencedEntityCollection<T> where T: BaseModel
+    public class ReferencedEntityCollection<T> : IReferencedEntityCollection<T> where T: BaseModel
 	{
 		private readonly List<T> _collection;
 		private readonly Action<object> _addAction;
         private readonly BaseModel _creator;
 
-		internal ReferencedEntityCollection(IEnumerable<T> collection, Action<object> addAction, BaseModel creator)
+		public ReferencedEntityCollection(IEnumerable<T> collection, Action<object> addAction, BaseModel creator)
 		{
 			_collection = collection.ToList();
 			_addAction = addAction;
@@ -26,15 +26,15 @@ namespace Genie.Core.Infrastructure.Collections.Concrete
 		{
             if (entityToAdd == null)
                 return;
-            switch (_creator.DatabaseModelStatus)
+            switch (_creator.__DatabaseModelStatus)
             {
                 case ModelStatus.Retrieved:
                     _addAction(entityToAdd);
                     break;
                 case ModelStatus.ToAdd:
-                    if(_creator.ActionsToRunWhenAdding == null)
-                        _creator.ActionsToRunWhenAdding = new List<IAddAction>();
-                    _creator.ActionsToRunWhenAdding.Add(new AddAction(_addAction, entityToAdd));
+                    if(_creator.__ActionsToRunWhenAdding == null)
+                        _creator.__ActionsToRunWhenAdding = new List<IAddAction>();
+                    _creator.__ActionsToRunWhenAdding.Add(new AddAction(_addAction, entityToAdd));
                     break;
                 case ModelStatus.JustInMemory:
                 case ModelStatus.Deleted:

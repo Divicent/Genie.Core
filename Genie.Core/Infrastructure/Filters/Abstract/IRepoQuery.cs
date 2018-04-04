@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Data;
+using Genie.Core.Infrastructure.Filters.Concrete;
 
 namespace Genie.Core.Infrastructure.Filters.Abstract
 {
     public interface IRepoQuery
     {
         string Target { get; set; }
-        Queue<string> Where { get; set; }
-        Queue<string> Order { get; set; }
+        Queue<FilterExpression> Where { get; set; }
+        Queue<OrderExpression> Order { get; set; }
         int? PageSize { get; set; }
         int? Page { get; set; }
         int? Limit { get; set; }

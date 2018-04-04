@@ -4,12 +4,12 @@ using Genie.Core.Infrastructure.Actions.Abstract;
 
 namespace Genie.Core.Infrastructure.Actions.Concrete
 {
-    internal class AddAction: IAddAction
+    public class AddAction: IAddAction
     {
         private readonly Action<object> _action;
         private readonly object _parameter;
 
-        internal AddAction(Action<object> action, object parameter )
+        public AddAction(Action<object> action, object parameter )
         {
             _action = action;
             _parameter = parameter;

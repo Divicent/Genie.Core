@@ -13,10 +13,6 @@ namespace Genie.Core.Infrastructure.Interfaces
 	public interface IRepository<T>
         where T : BaseModel
     {
-        /// <summary>
-        /// Current database connection
-        /// </summary>
-        IDbConnection Conn { get; }
         
         /// <summary>
         /// Current context

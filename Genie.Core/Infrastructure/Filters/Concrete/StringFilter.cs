@@ -9,7 +9,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
         private readonly T _parent;
         private readonly TQ _q;
 
-        internal StringFilter(string propertyName, T parent, TQ q)
+        public StringFilter(string propertyName, T parent, TQ q)
         {
             _parent = parent;
             _propertyName = propertyName;
@@ -18,43 +18,43 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         public IExpressionJoin<T, TQ> EqualsTo(string str)
         {
-            _parent.Add(QueryMaker.EqualsTo(_propertyName, Prepare(str), true));
+            _parent.Add(QueryMaker.EqualsTo(_propertyName, str, true));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> NotEquals(string str)
         {
-            _parent.Add(QueryMaker.NotEquals(_propertyName, Prepare(str), true));
+            _parent.Add(QueryMaker.NotEquals(_propertyName, str, true));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> Contains(string str)
         {
-            _parent.Add(QueryMaker.Contains(_propertyName, Prepare(str)));
+            _parent.Add(QueryMaker.Contains(_propertyName, str));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> StartsWith(string str)
         {
-            _parent.Add(QueryMaker.StartsWith(_propertyName, Prepare(str)));
+            _parent.Add(QueryMaker.StartsWith(_propertyName, str));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> NotStartsWith(string str)
         {
-            _parent.Add(QueryMaker.NotStartsWith(_propertyName, Prepare(str)));
+            _parent.Add(QueryMaker.NotStartsWith(_propertyName, str));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> EndsWith(string str)
         {
-            _parent.Add(QueryMaker.EndsWith(_propertyName, Prepare(str)));
+            _parent.Add(QueryMaker.EndsWith(_propertyName, str));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> NotEndsWith(string str)
         {
-            _parent.Add(QueryMaker.NotEndsWith(_propertyName, Prepare(str)));
+            _parent.Add(QueryMaker.NotEndsWith(_propertyName, str));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
@@ -90,20 +90,15 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         public IExpressionJoin<T, TQ> In(params string[] items)
         {
-            _parent.Add(QueryMaker.In(_propertyName, items.Select(Prepare).Cast<object>().ToArray(), true));
+            _parent.Add(QueryMaker.In(_propertyName, items.Cast<object>().ToArray(), true));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 
         public IExpressionJoin<T, TQ> NotIn(params string[] items)
         {
-            _parent.Add(QueryMaker.NotIn(_propertyName, items.Select(Prepare).Cast<object>().ToArray(), true));
+            _parent.Add(QueryMaker.NotIn(_propertyName, items.Cast<object>().ToArray(), true));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
-
-		private static string Prepare(string str) 
-		{
-			return str.Replace("'", "''");
-		}
     } 
 }
 

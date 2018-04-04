@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Genie.Core.Infrastructure.Filters.Abstract;
+using Genie.Core.Infrastructure.Filters.Concrete;
 using Genie.Core.Infrastructure.Models;
 using Cache = Genie.Core.Infrastructure.Querying.QueryBuilderCache;
 
 namespace Genie.Core.Infrastructure.Querying
 {
-    internal class QueryBuilder
+    public class QueryBuilder
     {
         private readonly IRepoQuery _repoQuery;
 	    private readonly StringBuilder _builder;
 
-	    private string _select;
+        private readonly QueryStrategy _strategy;
+
+        private string _select;
 	    private string _where;
 	    private string _order;
 	    private string _page;
-	    private string _group;
         
-        internal QueryBuilder(IRepoQuery repoQuery)
+        internal QueryBuilder(IRepoQuery repoQuery, QueryStrategy strategy)
         {
 	        _repoQuery = repoQuery;
 	        _builder = new StringBuilder();
+            _strategy = strategy;
         }
 
         internal string Get()
@@ -53,7 +56,7 @@ namespace Genie.Core.Infrastructure.Querying
 	    internal static string Insert(BaseModel entityToInsert)
 	    {
 		    var parameters = Cache.GetInsertParameters(entityToInsert);
-		    return string.Format("insert into {0} ({1}) values ({2})", parameters.Item1, parameters.Item2, parameters.Item3);
+		    return $"insert into {parameters.Item1} ({parameters.Item2}) values ({parameters.Item3})";
 	    }
 	    
 	    internal static string GetId()
@@ -61,7 +64,7 @@ namespace Genie.Core.Infrastructure.Querying
 		    return "select @@IDENTITY id";
 	    }
 
-	    internal static string Delete(BaseModel entity)
+	    internal string Delete(BaseModel entity)
 	    {
 		    if (entity == null)
 		    {
@@ -77,26 +80,26 @@ namespace Genie.Core.Infrastructure.Querying
 		    var name = Cache.GetTableName(type);
 
 		    var sb = new StringBuilder();
-		    sb.AppendFormat("delete from {0} where ", name);
+		    sb.Append($"delete from {name} where ");
 
 		    for (var i = 0; i < keyProperties.Count; i++)
 		    {
 			    var property = keyProperties.ElementAt(i);
-			    sb.AppendFormat("[{0}] = @{1}", property.Name, property.Name);
+			    sb.Append($"{_strategy.Enclose(property.Name)} = @{property.Name}");
 			    if (i < keyProperties.Count - 1)
-				    sb.AppendFormat(" and ");
+				    sb.Append(" and ");
 		    }
 
 		    return sb.ToString();
 	    }
 	    
 	    
-	    internal static string Update(BaseModel entityToUpdate)
+	    internal string Update(BaseModel entityToUpdate)
 	    {
-		    if (entityToUpdate.DatabaseModelStatus != ModelStatus.Retrieved)
+		    if (entityToUpdate.__DatabaseModelStatus != ModelStatus.Retrieved)
 			    return null;
 
-		    if (entityToUpdate.UpdatedProperties == null || entityToUpdate.UpdatedProperties.Count < 1)
+		    if (entityToUpdate.__UpdatedProperties == null || entityToUpdate.__UpdatedProperties.Count < 1)
 			    return null;
 
 		    var type = entityToUpdate.GetType();
@@ -108,27 +111,27 @@ namespace Genie.Core.Infrastructure.Querying
 		    var name =  Cache.GetTableName(type);
 
 		    var sb = new StringBuilder();
-		    sb.AppendFormat("update {0} set ", name);
+		    sb.Append($"update {name} set ");
 
 		    var allProperties =  Cache.TypePropertiesCache(type);
-		    var nonIdProps = allProperties.Where(a => !keyProperties.Contains(a) && entityToUpdate.UpdatedProperties.Contains(a.Name)).ToList(); // Only updated properties
+		    var nonIdProps = allProperties.Where(a => !keyProperties.Contains(a) && entityToUpdate.__UpdatedProperties.Contains(a.Name)).ToList(); // Only updated properties
 
 
 		    for (var i = 0; i < nonIdProps.Count; i++)
 		    {
 			    var property = nonIdProps.ElementAt(i);
-			    sb.AppendFormat("[{0}] = @{1}", property.Name, property.Name);
+			    sb.Append($"{_strategy.Enclose(property.Name)} = @{property.Name}");
 			    if (i < nonIdProps.Count - 1)
-				    sb.AppendFormat(", ");
+				    sb.Append(", ");
 		    }
 
 		    sb.Append(" where ");
 		    for (var i = 0; i < keyProperties.Count; i++)
 		    {
 			    var property = keyProperties.ElementAt(i);
-			    sb.AppendFormat("[{0}] = @{1}", property.Name, property.Name);
+			    sb.Append($"{_strategy.Enclose(property.Name)} = @{property.Name}");
 			    if (i < keyProperties.Count - 1)
-				    sb.AppendFormat(" and ");
+				    sb.Append(" and ");
 		    }
 
 		    return sb.ToString();
@@ -142,26 +145,26 @@ namespace Genie.Core.Infrastructure.Querying
 
 	    private QueryBuilder Select(bool isCount)
 	    {
-		   _select = string.Format("select {0} from " + _repoQuery.Target, isCount ? "count(*)" : CreateSelectColumnList(_repoQuery.Columns.ToList(), _repoQuery.Target));
+	        _select = _strategy.Select(_repoQuery, isCount, this);
 		   return this;
 	    }
 
 	    private QueryBuilder SelectSum(string name)
 	    {
-		    _select = $"select sum({name}) from " + _repoQuery.Target;
+		    _select = $"select sum({name}) from {_repoQuery.Target}";
 		    return this;
 	    }
 
 	    private QueryBuilder Where()
 	    {
-		    var where = _repoQuery.Where == null ? new Queue<string>() : new Queue<string>(_repoQuery.Where);
+		    var where = _repoQuery.Where == null ? new Queue<FilterExpression>() : new Queue<FilterExpression>(_repoQuery.Where);
 
 		    if (where.Count <= 0) return this;
 		    var builder = new StringBuilder();
 		    builder.Append(" where ");
 
 		    var first = true;
-		    var previous = "";
+		    FilterExpression previous = null;
 
 		    while (where.Count > 0)
 		    {
@@ -183,25 +186,25 @@ namespace Genie.Core.Infrastructure.Querying
 				    }
 
 				    previous = current;
-				    builder.Append($" {current} ");
+				    builder.Append($" {ProcessExpression(current)} ");
 			    }
-			    else if (current == ")" || current == "(")
+			    else if (current.Type == FilterExpressionType.End || current.Type == FilterExpressionType.Start)
 			    {
-				    if (current == "(" && !first && !AndOrOr(previous))
+				    if (current.Type == FilterExpressionType.Start && !first && !AndOrOr(previous))
 					    builder.Append(" and ");
 
 				    previous = current;
-				    builder.Append($" {current} ");
+				    builder.Append($" {ProcessExpression(current)} ");
 			    }
 			    else
 			    {
-				    if (!first && previous != "(" && previous != ")" && !AndOrOr(previous))
+				    if (!first && previous != null && previous.Type != FilterExpressionType.Start && previous.Type != FilterExpressionType.End && !AndOrOr(previous))
 				    {
 					    builder.Append(" and ");
 				    }
 
 				    previous = current;
-				    builder.Append($" {current} ");
+				    builder.Append($" {ProcessExpression(current)} ");
 			    }
 
 			    first = false;
@@ -213,7 +216,7 @@ namespace Genie.Core.Infrastructure.Querying
 
 	    private QueryBuilder Order()
 	    {
-		    var order = _repoQuery.Order == null ? new Queue<string>() : new Queue<string>(_repoQuery.Order);
+		    var order = _repoQuery.Order == null ? new Queue<OrderExpression>() : new Queue<OrderExpression>(_repoQuery.Order);
 
 		    if (order.Count <= 0) 
 			    return this;
@@ -223,53 +226,16 @@ namespace Genie.Core.Infrastructure.Querying
 		    while (order.Count > 0)
 		    {
 			    var item = order.Dequeue();
-			    builder.Append($" {item} ");
+			    builder.Append($" {_strategy.Enclose(item.Column)} {(item.Type == OrderType.Ascending ? "ASC" : "DESC")},");
 		    }
-		    _order = builder.ToString();
+		    _order = builder.ToString().TrimEnd(',');
 
 		    return this;
 	    }
 
 	    private QueryBuilder Page()
 	    {
-	        if (_repoQuery.Page != null && _repoQuery.PageSize != null)
-	        {
-	            _page = $" OFFSET ({_repoQuery.Page * _repoQuery.PageSize}) ROWS " + $" FETCH NEXT {_repoQuery.PageSize} ROWS ONLY ";
-	        }
-	        else
-	        {
-				var builder = new StringBuilder();
-	            if (_repoQuery.Skip != null)
-	                builder.Append($" OFFSET ({_repoQuery.Skip}) ROWS ");
-
-	            if (_repoQuery.Take != null)
-	                builder.Append($" FETCH NEXT {_repoQuery.Take} ROWS ONLY ");
-				
-				_page = builder.ToString();
-	        }
-
-
-		    return this;
-	    }
-
-	    private QueryBuilder GroupByAllExcept(string name)
-	    {
-		    if (string.IsNullOrWhiteSpace(name) )
-			    return this;
-
-		    var groupColumns = _repoQuery.Columns
-			    .Where(c => c != name);
-		    
-		    var builder = new StringBuilder("group by ");
-		    var first = true;
-		    foreach (var columnName in groupColumns)
-		    {
-			    builder.Append($"{(!first ? ", " : "")}`{columnName}`");
-			    first = false;
-		    }
-
-		    _group = builder.ToString();
-
+	        _page = _strategy.Page(_repoQuery);
 		    return this;
 	    }
 
@@ -286,19 +252,16 @@ namespace Genie.Core.Infrastructure.Querying
 
 		    if (_page != null)
 			    _builder.AppendLine(_page);
-		    
-		    if(_group != null)
-			    _builder.AppendLine(_group);
 
-		    return _builder.ToString();
+	        return _builder.ToString();
 	    }
 
-	    private static bool AndOrOr(string str)
+	    private static bool AndOrOr(FilterExpression exp)
 	    {
-		    return str == "and" || str == "or";
+		    return exp.Type == FilterExpressionType.And || exp.Type == FilterExpressionType.Or;
 	    }
 
-	    private static string CreateSelectColumnList(IReadOnlyCollection<string> columnNames, string target)
+	    internal string CreateSelectColumnList(IReadOnlyCollection<string> columnNames, string target)
 	    {
 		    if (string.IsNullOrWhiteSpace(target) || columnNames == null || columnNames.Count < 1)
 			    return "*";
@@ -310,11 +273,82 @@ namespace Genie.Core.Infrastructure.Querying
 		    var first = true;
 		    foreach (var columnName in columnNames)
 		    {
-			    builder.Append($"{(!first ? ", " : "")}[{columnName}]");
+			    builder.Append($"{(!first ? ", " : "")}{_strategy.Enclose(columnName)}");
 			    first = false;
 		    }
 		    
 		    return Cache.SelectParts[target] = builder.ToString();
 	    }
+
+        private string ProcessExpression(FilterExpression expression)
+        {
+            string Quote(object value) => expression.Quote ? $"'{value}'": value.ToString();
+            var column = _strategy.Enclose(expression.Column);
+
+            switch (expression.Type)
+            {
+                case FilterExpressionType.And:
+                    return "and";
+                case FilterExpressionType.Or:
+                    return "or";
+                case FilterExpressionType.Column:
+                    return "";
+                case FilterExpressionType.Start:
+                    return "(";
+                case FilterExpressionType.End:
+                    return ")";
+                case FilterExpressionType.EqualsTo:
+                    return $"{column} = {Quote(expression.Value)}";
+                case FilterExpressionType.NotEqualsTo:
+                    return $"{column} != {Quote(expression.Value)}";
+                case FilterExpressionType.Contains:
+                    return $"{column} LIKE '%{expression.Value}%'";
+                case FilterExpressionType.NotContains:
+                    return $"{column} NOT LIKE '%{expression.Value}%'";
+                case FilterExpressionType.StartsWith:
+                    return $"{column} LIKE '{expression.Value}%'";
+                case FilterExpressionType.NotStartsWith:
+                    return $"{column} NOT LIKE '{expression.Value}%'";
+                case FilterExpressionType.EndsWith:
+                    return $"{column} LIKE '%{expression.Value}'";
+                case FilterExpressionType.NotEndsWith:
+                    return $"{column} NOT LIKE '%{expression.Value}'";
+                case FilterExpressionType.IsEmpty:
+                    return $"{column} = ''";
+                case FilterExpressionType.IsNotEmpty:
+                    return $"{column} != ''";
+                case FilterExpressionType.IsNull:
+                    return $"{column} IS NULL";
+                case FilterExpressionType.IsNotNull:
+                    return $"{column} IS NOT NULL";
+                case FilterExpressionType.GreaterThan:
+                    return $"{column} > {Quote(expression.Value)}";
+                case FilterExpressionType.LessThan:
+                    return $"{column} < {Quote(expression.Value)}";
+                case FilterExpressionType.GreaterThanOrEquals:
+                    return $"{column} >= {Quote(expression.Value)}";
+                case FilterExpressionType.LessThanOrEqual:
+                    return $"{column} <= {Quote(expression.Value)}";
+                case FilterExpressionType.Between:
+                    return expression.Value is Tuple<object, object> value
+                        ? $"{column} >= {Quote(value.Item1)} AND {column} <= {Quote(value.Item2)}"
+                        : "";
+                case FilterExpressionType.IsTrue:
+                    return $"{column} = 1";
+                case FilterExpressionType.IsFalse:
+                    return $"{column} = 0";
+                case FilterExpressionType.In:
+                    return expression.Value is IEnumerable<object> values 
+                        ? $"{column} IN({values.Aggregate("", (c, n) => $"{c},{Quote(n)}").TrimStart(',')})" 
+                        : "";
+                case FilterExpressionType.NotIn:
+                    return expression.Value is IEnumerable<object> vals
+                        ? $"{column} NOT IN({vals.Aggregate("", (c, n) => $"{c},{Quote(n)}").TrimStart(',')})"
+                        : "";
+                default:
+                    return null;
+            }
+        }
     }
 }
+

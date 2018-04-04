@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
+
 namespace Genie.Core.Infrastructure.Interfaces
 {
     /// <summary>
@@ -11,7 +15,17 @@ namespace Genie.Core.Infrastructure.Interfaces
     /// </summary>
     public interface IProcedureContainer
     {
+        void Execute(string name, object parameters);
 
+        T QuerySingle<T>(string name, object parameters);
+
+        IEnumerable<T> QueryList<T>(string name, object parameters);
+
+        Task ExecuteAsync(string name, object parameters);
+
+        Task<T> QuerySingleAsync<T>(string name, object parameters);
+
+        Task<IEnumerable<T>> QueryListAsync<T>(string name, object parameters);
     }
 }
 

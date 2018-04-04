@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Threading.Tasks;
 using Genie.Core.Infrastructure.Models;
@@ -16,7 +17,11 @@ namespace Genie.Core.Infrastructure.Interfaces
         /// <returns>A new transaction</returns>
         IDbTransaction BeginTransaction();
 
-	    void AddOp(IOperation operation);
+        IDBContext Context { get; }
+
+        ConcurrentDictionary<string, object> Repos { get; set; }
+
+        void AddOp(IOperation operation);
         void AddObj(BaseModel obj);
 
         /// <summary>

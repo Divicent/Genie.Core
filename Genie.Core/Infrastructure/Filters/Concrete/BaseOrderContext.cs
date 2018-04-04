@@ -5,11 +5,10 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 {
     public abstract class BaseOrderContext : IOrderContext
     {
-        protected BaseOrderContext() { Expressions = new Queue<string>(); }
-        protected Queue<string> Expressions { get; set; }
-        public void And() { Expressions.Enqueue(","); }
-        public void Add(string expression) { Expressions.Enqueue(expression); }
-        public Queue<string> GetOrderExpressions() { return Expressions; }
+        protected BaseOrderContext() { Expressions = new Queue<OrderExpression>(); }
+        protected Queue<OrderExpression> Expressions { get; set; }
+        public void Add(OrderExpression expression) { Expressions.Enqueue(expression); }
+        public Queue<OrderExpression> GetOrderExpressions() { return Expressions; }
     }
 }
 

@@ -1,6 +1,6 @@
 namespace Genie.Core.Infrastructure.Actions.Abstract
 {
-    internal interface IAddAction
+    public interface IAddAction
     {
         void Run();
     }

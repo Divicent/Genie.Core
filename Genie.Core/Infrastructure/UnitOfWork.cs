@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -6,19 +7,23 @@ using System.Threading.Tasks;
 using Genie.Core.Extensions;
 using Genie.Core.Infrastructure.Interfaces;
 using Genie.Core.Infrastructure.Models;
+using Genie.Core.Infrastructure.Querying;
 
 namespace Genie.Core.Infrastructure
 {
-    public class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork
     {
 		private IProcedureContainer _procedureContainer;
 
         private readonly List<IOperation> _operations;
         private readonly HashSet<BaseModel> _objects;
 
-		public IProcedureContainer Procedures { get { return _procedureContainer ?? ( _procedureContainer = new ProcedureContainer(Context)); } }
+		public IProcedureContainer Procedures => _procedureContainer ?? ( _procedureContainer = new ProcedureContainer(Context));
 
-        private IDBContext Context { get;}
+        public IDBContext Context { get;}
+
+        public ConcurrentDictionary<string, object> Repos { get; set; }
+
         private IDbTransaction Transaction { get; set; }
 
         public UnitOfWork(IDBContext context)
@@ -26,6 +31,7 @@ namespace Genie.Core.Infrastructure
             Context = context;
             _objects = new HashSet<BaseModel>();
             _operations = new List<IOperation>();
+            Repos = new ConcurrentDictionary<string, object>();
         }
             
         public IDbTransaction BeginTransaction()
@@ -34,14 +40,13 @@ namespace Genie.Core.Infrastructure
             {
                 throw new NullReferenceException("Not finished previous transaction");
             }
-            Transaction = Context.Connection.BeginTransaction();
             return Transaction;
         }
 
 
         public void Commit()
         {
-            var updated = _objects.Where(o => o.UpdatedProperties != null && o.UpdatedProperties.Count > 0).ToList();
+            var updated = _objects.Where(o => o.__UpdatedProperties != null && o.__UpdatedProperties.Count > 0).ToList();
 
             try
             {
@@ -54,14 +59,12 @@ namespace Genie.Core.Infrastructure
                     var toDelete = _operations.Where(o => o.Type == OperationType.Remove).ToList();
                     var toUpdate = _operations.Where(o => o.Type == OperationType.Update).ToList();
 
-                    var connection = Context.Connection;
-
 					if (toDelete.Count > 0)
 					{
                     	foreach (var operation in toDelete)
 						{
-                            var deleted = connection.Delete(operation.Object);
-                            if (deleted) { operation.Object.DatabaseModelStatus = ModelStatus.Deleted; }
+                            var deleted = Context.GetConnection().Delete(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                            if (deleted) { operation.Object.__DatabaseModelStatus = ModelStatus.Deleted; }
                         }
 					}
 
@@ -69,15 +72,15 @@ namespace Genie.Core.Infrastructure
 					{
                         foreach (var operation in toAdd)
                         {
-                            var newId = connection.Insert(operation.Object);
+                            var newId = Context.GetConnection().Insert(operation.Object);
                              if(newId != null)
                                 operation.Object.SetId((int)newId);
-                            operation.Object.DatabaseModelStatus = ModelStatus.Retrieved;
-                            if (operation.Object.ActionsToRunWhenAdding != null && operation.Object.ActionsToRunWhenAdding.Count > 0)
+                            operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
+                            if (operation.Object.__ActionsToRunWhenAdding != null && operation.Object.__ActionsToRunWhenAdding.Count > 0)
                             {
-                                foreach (var addAction in operation.Object.ActionsToRunWhenAdding)
+                                foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
                                     addAction.Run();
-                                operation.Object.ActionsToRunWhenAdding.Clear();
+                                operation.Object.__ActionsToRunWhenAdding.Clear();
                             }
                         }
                     }
@@ -86,8 +89,8 @@ namespace Genie.Core.Infrastructure
 					{
 						foreach (var operation in toUpdate)
 						{
-                            connection.Update(operation.Object);
-                            operation.Object.UpdatedProperties.Clear();
+						    Context.GetConnection().Update(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                            operation.Object.__UpdatedProperties.Clear();
                         }
 					}
                     
@@ -102,7 +105,7 @@ namespace Genie.Core.Infrastructure
 
         public async Task CommitAsync()
         {
-            var updated = _objects.Where(o => o.UpdatedProperties != null && o.UpdatedProperties.Count > 0).ToList();
+            var updated = _objects.Where(o => o.__UpdatedProperties != null && o.__UpdatedProperties.Count > 0).ToList();
 
             try
             {
@@ -115,14 +118,12 @@ namespace Genie.Core.Infrastructure
                     var toDelete = _operations.Where(o => o.Type == OperationType.Remove).ToList();
                     var toUpdate = _operations.Where(o => o.Type == OperationType.Update).ToList();
 
-                    var connection = Context.Connection;
-
 					if (toDelete.Count > 0)
 					{
                     	foreach (var operation in toDelete)
 						{
-                            var deleted = await connection.DeleteAsync(operation.Object);
-                            if (deleted) { operation.Object.DatabaseModelStatus = ModelStatus.Deleted; }
+                            var deleted = await Context.GetConnection().DeleteAsync(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                            if (deleted) { operation.Object.__DatabaseModelStatus = ModelStatus.Deleted; }
                         }
 					}
 
@@ -130,15 +131,15 @@ namespace Genie.Core.Infrastructure
 					{
                         foreach (var operation in toAdd)
                         {
-                            var newId = await connection.InsertAsync(operation.Object);
+                            var newId = await Context.GetConnection().InsertAsync(operation.Object);
                              if(newId != null)
                                 operation.Object.SetId((int)newId);
-                            operation.Object.DatabaseModelStatus = ModelStatus.Retrieved;
-                            if (operation.Object.ActionsToRunWhenAdding != null && operation.Object.ActionsToRunWhenAdding.Count > 0)
+                            operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
+                            if (operation.Object.__ActionsToRunWhenAdding != null && operation.Object.__ActionsToRunWhenAdding.Count > 0)
                             {
-                                foreach (var addAction in operation.Object.ActionsToRunWhenAdding)
+                                foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
                                     addAction.Run();
-                                operation.Object.ActionsToRunWhenAdding.Clear();
+                                operation.Object.__ActionsToRunWhenAdding.Clear();
                             }
                         }
                     }
@@ -147,8 +148,8 @@ namespace Genie.Core.Infrastructure
 					{
 						foreach (var operation in toUpdate)
 						{
-                            await connection.UpdateAsync(operation.Object);
-                            operation.Object.UpdatedProperties.Clear();
+                            await Context.GetConnection().UpdateAsync(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                            operation.Object.__UpdatedProperties.Clear();
                         }
 					}
                     
@@ -164,10 +165,7 @@ namespace Genie.Core.Infrastructure
 
         public void Dispose()
         {
-            if (Transaction != null)
-            {
-                Transaction.Dispose();
-            }
+            Transaction?.Dispose();
         }
 
         public void AddOp(IOperation operation)

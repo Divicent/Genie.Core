@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+    <id>Genie.Core</id>
+    <version>1.0.0-beta-3</version>
+    <authors>Shanaka Rusith</authors>
+    <projectUrl>https://github.com/GenieDotNet/Genie.Core</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/GenieDotNet/Genie.Core/dev/images/genie_logo.256.png</iconUrl>
+    <releaseNotes>Beta integration release</releaseNotes>
+    <description>
+      This library provides core functionalities for data access layers generated using Genie CLI
+    </description>
+    <copyright>Copyright ©2018 Shanaka Rusith</copyright>
+    <tags>genie core dal database</tags>
+    </metadata>
+</package>

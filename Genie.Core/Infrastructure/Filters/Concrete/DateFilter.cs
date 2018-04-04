@@ -10,7 +10,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
         private readonly T _parent;
         private readonly TQ _q;
 
-        internal DateFilter(string propertyName, T parent, TQ q)
+        public DateFilter(string propertyName, T parent, TQ q)
         {
             _parent = parent;
             _propertyName = propertyName;

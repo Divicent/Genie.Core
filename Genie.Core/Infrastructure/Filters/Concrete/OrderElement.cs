@@ -8,7 +8,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
         private readonly T _parent;
         private readonly TQ _q;
 
-        internal OrderElement(string propertyName, T parent, TQ q)
+        public OrderElement(string propertyName, T parent, TQ q)
         {
             _parent = parent;
             _propertyName = propertyName;
@@ -17,13 +17,13 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         public IOrderJoin<T, TQ> Ascending()
         {
-            _parent.Add(string.Format("[{0}] ASC", _propertyName));
+            _parent.Add( new OrderExpression(_propertyName, OrderType.Ascending));
             return new OrderJoin<T, TQ>(_parent, _q);
         }
 
         public IOrderJoin<T, TQ> Descending()
         {
-            _parent.Add(string.Format("[{0}] DESC", _propertyName));
+            _parent.Add(new OrderExpression(_propertyName, OrderType.Descending));
             return new OrderJoin<T, TQ>(_parent, _q);
         }
     }

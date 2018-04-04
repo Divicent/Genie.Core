@@ -7,7 +7,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
         private readonly T _t;
         private readonly TQ _q;
 
-        internal ExpressionJoin(T t, TQ q)
+        public ExpressionJoin(T t, TQ q)
         {
             _t = t;
             _q = q;

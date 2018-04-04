@@ -9,7 +9,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
         private readonly T _parent;
         private readonly TQ _q;
 
-        internal NumberFilter(string propertyName, T parent, TQ q)
+        public NumberFilter(string propertyName, T parent, TQ q)
         {
             _parent = parent;
             _propertyName = propertyName;
@@ -30,7 +30,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         public IExpressionJoin<T, TQ> LargerThan(double number)
         {
-            _parent.Add(QueryMaker.GreaterThan(_propertyName,number,false));
+            _parent.Add(QueryMaker.GreaterThan(_propertyName,number, false));
             return new ExpressionJoin<T, TQ>(_parent, _q);
         }
 

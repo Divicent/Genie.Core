@@ -67,7 +67,9 @@ namespace Genie.Core.Infrastructure.Querying
                 return pis;
             }
 
-            var properties = type.GetProperties().Where(IsWriteable).ToList();
+            var properties = type.GetProperties()
+                .Where(p => !p.Name.StartsWith("__"))
+                .Where(IsWriteable).ToList();
             TypeProperties[type.TypeHandle] = properties;
             return properties;
         }

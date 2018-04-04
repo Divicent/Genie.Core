@@ -10,34 +10,34 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         protected BaseFilterContext()
         {
-            Expressions = new Queue<string>();
+            Expressions = new Queue<FilterExpression>();
         }
 
-        public Queue<string> Expressions { get; set; }
+        public Queue<FilterExpression> Expressions { get; set; }
 
         public void And()
         {
-            Expressions.Enqueue("and");
+            Expressions.Enqueue(new FilterExpression(FilterExpressionType.And));
         }
 
         public void Or()
         {
-            Expressions.Enqueue("or");
+            Expressions.Enqueue(new FilterExpression(FilterExpressionType.Or));
         }
 
-        public void Add(string expression)
+        public void Add(FilterExpression expression)
         {
             Expressions.Enqueue(expression);
         }
 
-        public Queue<string> GetFilterExpressions()
+        public Queue<FilterExpression> GetFilterExpressions()
         {
             return Expressions;
         }
 
         public void StartScope()
         {
-            Expressions.Enqueue("(");
+            Expressions.Enqueue(new FilterExpression(FilterExpressionType.Start));
             _startedScopes++;
         }
 
@@ -46,7 +46,7 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
             if(_startedScopes <1 )
                 throw new Exception("No scopes are started");
 
-            Expressions.Enqueue(")");
+            Expressions.Enqueue(new FilterExpression(FilterExpressionType.End));
             _startedScopes--;
         }
     }

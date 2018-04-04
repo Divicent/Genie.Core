@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Genie.Core.Infrastructure.Filters.Concrete;
 
 namespace Genie.Core.Infrastructure.Filters.Abstract
 {
@@ -12,7 +13,7 @@ namespace Genie.Core.Infrastructure.Filters.Abstract
         /// <summary>
         /// Current expressions as a Queue
         /// </summary>
-		Queue<string> Expressions { get; set; }
+		Queue<FilterExpression> Expressions { get; set; }
 		
         /// <summary>
         /// Adds an and condition
@@ -28,12 +29,12 @@ namespace Genie.Core.Infrastructure.Filters.Abstract
         /// Adds a custom expression
         /// </summary>
         /// <param name="expression">Expression to apply</param>
-        void Add(string expression);
+        void Add(FilterExpression expression);
 
         /// <summary>
         /// Current expressions as a Queue
         /// </summary>
-		Queue<string> GetFilterExpressions();
+		Queue<FilterExpression> GetFilterExpressions();
 
         /// <summary>
         /// Starts a scope inside the query (paranthezes)

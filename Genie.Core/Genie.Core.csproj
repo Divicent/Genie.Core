@@ -1,23 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-      <TargetFrameworks>net451;netstandard1.3;netstandard2.0</TargetFrameworks>
+      <TargetFrameworks>net452;netstandard1.3;netstandard2.0</TargetFrameworks>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <Version>1.0.0-beta-4</Version>
+      <Authors>Shanaka Rusith</Authors>
+      <Company />
+      <Product>Genie</Product>
+      <Description>This library provides core functionalities for data access layers generated using Genie CLI</Description>
+      <Copyright>Shanaka Rusith</Copyright>
+      <PackageIconUrl>https://raw.githubusercontent.com/GenieDotNet/Genie.Core/dev/images/genie_logo.256.png</PackageIconUrl>
+      <PackageProjectUrl>https://github.com/GenieDotNet</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/GenieDotNet/Genie.Core</RepositoryUrl>
+      <PackageTags>genie,core,dal,database</PackageTags>
+      <PackageReleaseNotes>Beta integration release</PackageReleaseNotes>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="Mapper\" />
-    <Folder Include="Infrastructure\Models\" />
-  </ItemGroup>
-    <ItemGroup Condition="'$(TargetFramework)' == 'net451'">
+    <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
         <Reference Include="System" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
         <Reference Include="System.Xml.Linq" />
-        <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
+        <Reference Include="Microsoft.CSharp" />
+        <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
     <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' OR '$(TargetFramework)' == 'netstandard2.0'">
         <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
         <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
         <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
         <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
+        <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
     <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
         <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
@@ -27,5 +37,6 @@
         <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
         <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
         <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
+        <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
 </Project>

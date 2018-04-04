@@ -13,11 +13,6 @@ namespace Genie.Core.Infrastructure.Interfaces
 		where T : class
 	{
         /// <summary>
-        /// Current database connection
-        /// </summary>
-		IDbConnection Conn { get; }
-
-        /// <summary>
         /// Current context
         /// </summary>
 		IDBContext Context { get; }

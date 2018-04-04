@@ -6,13 +6,13 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 {
     public class RepoQuery : IRepoQuery
     {
-        internal RepoQuery()
+        public RepoQuery()
         {
         }
 
         public string Target { get; set; }
-        public Queue<string> Where { get; set; }
-        public Queue<string> Order { get; set; }
+        public Queue<FilterExpression> Where { get; set; }
+        public Queue<OrderExpression> Order { get; set; }
         public int? PageSize { get; set; }
         public int? Page { get; set; }
         public int? Limit { get; set; }
