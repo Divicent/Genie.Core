@@ -29,9 +29,7 @@ namespace Genie.Core.Infrastructure.Querying
         
         internal static IEnumerable<PropertyInfo> KeyPropertiesCache(Type type)
         {
-
-            IEnumerable<PropertyInfo> pi;
-            if (KeyProperties.TryGetValue(type.TypeHandle, out pi))
+            if (KeyProperties.TryGetValue(type.TypeHandle, out var pi))
             {
                 return pi;
             }
@@ -45,9 +43,7 @@ namespace Genie.Core.Infrastructure.Querying
 
         private static IEnumerable<PropertyInfo> IdentityPropertiesCache(Type type)
         {
-
-            IEnumerable<PropertyInfo> pi;
-            if (IdentityProperties.TryGetValue(type.TypeHandle, out pi))
+            if (IdentityProperties.TryGetValue(type.TypeHandle, out var pi))
             {
                 return pi;
             }
@@ -61,8 +57,7 @@ namespace Genie.Core.Infrastructure.Querying
 
         internal static IEnumerable<PropertyInfo> TypePropertiesCache(Type type)
         {
-            IEnumerable<PropertyInfo> pis;
-            if (TypeProperties.TryGetValue(type.TypeHandle, out pis))
+            if (TypeProperties.TryGetValue(type.TypeHandle, out var pis))
             {
                 return pis;
             }
@@ -113,8 +108,7 @@ namespace Genie.Core.Infrastructure.Querying
         
         internal static string GetTableName(Type type)
         {
-            string name;
-            if (TypeTableName.TryGetValue(type.TypeHandle, out name)) return name;
+            if (TypeTableName.TryGetValue(type.TypeHandle, out var name)) return name;
             name = type.Name + "s";
             if (type.GetTypeInfo().IsInterface && name.StartsWith("I"))
                 name = name.Substring(1);
