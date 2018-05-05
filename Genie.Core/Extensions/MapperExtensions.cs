@@ -15,15 +15,16 @@ namespace Genie.Core.Extensions
         /// </summary>
         /// <param name="connection">Open SqlConnection</param>
         /// <param name="entityToInsert">Entity to insert</param>
+        /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static long? Insert(this IDbConnection connection, BaseModel entityToInsert)
+        public static long? Insert(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
-                var cmd = QB.Insert(entityToInsert);
+                var cmd = queryBuilder.Insert(entityToInsert);
                 connection.Execute(cmd, entityToInsert);
-                var r = connection.Query(QB.GetId()).ToList();
+                var r = connection.Query(queryBuilder.GetId()).ToList();
                 long id = 0;
                 if (r.Any())
                 {
@@ -39,21 +40,21 @@ namespace Genie.Core.Extensions
         }
 
 
-
         /// <summary>
         /// Inserts an entity into table "T" and returns identity id asynchronously.
         /// </summary>
         /// <param name="connection">Open SqlConnection</param>
         /// <param name="entityToInsert">Entity to insert</param>
+        /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static async Task<long?> InsertAsync(this IDbConnection connection, BaseModel entityToInsert)
+        public static async Task<long?> InsertAsync(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
-                var cmd = QB.Insert(entityToInsert);
+                var cmd = queryBuilder.Insert(entityToInsert);
                 await connection.ExecuteAsync(cmd, entityToInsert);
-                var r = (await connection.QueryAsync(QB.GetId())).ToList();
+                var r = (await connection.QueryAsync(queryBuilder.GetId())).ToList();
                 long id = 0;
                 if (r.Any())
                 {

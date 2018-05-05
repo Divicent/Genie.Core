@@ -69,7 +69,7 @@ namespace Genie.Core.Infrastructure.Querying
             return properties;
         }
         
-        internal static Tuple<string, string, string> GetInsertParameters(BaseModel entityToInsert)
+        internal static (string name, string columnList, string parametersList) GetInsertParameters(BaseModel entityToInsert)
         {
             var type = entityToInsert.GetType();
 
@@ -103,7 +103,7 @@ namespace Genie.Core.Infrastructure.Querying
                 index++;
             }
 
-            return new Tuple<string, string, string>(name, sbColumnList.ToString(), sbParameterList.ToString());
+            return (name, sbColumnList.ToString(), sbParameterList.ToString());
         }
         
         internal static string GetTableName(Type type)

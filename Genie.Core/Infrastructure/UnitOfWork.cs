@@ -70,9 +70,10 @@ namespace Genie.Core.Infrastructure
 
 					if (toAdd.Count > 0)
 					{
+                        var queryBuilder = new QueryBuilder(null, Context.QueryStrategy);
                         foreach (var operation in toAdd)
                         {
-                            var newId = Context.GetConnection().Insert(operation.Object);
+                            var newId = Context.GetConnection().Insert(operation.Object, queryBuilder);
                              if(newId != null)
                                 operation.Object.SetId((int)newId);
                             operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
@@ -129,9 +130,10 @@ namespace Genie.Core.Infrastructure
 
 					if (toAdd.Count > 0)
 					{
+					    var queryBuilder = new QueryBuilder(null, Context.QueryStrategy);
                         foreach (var operation in toAdd)
                         {
-                            var newId = await Context.GetConnection().InsertAsync(operation.Object);
+                            var newId = await Context.GetConnection().InsertAsync(operation.Object, queryBuilder);
                              if(newId != null)
                                 operation.Object.SetId((int)newId);
                             operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;

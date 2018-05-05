@@ -26,5 +26,10 @@ namespace Genie.Core.Infrastructure.Querying.Strategies
 
             return null;
         }
+
+        internal override string GetId()
+        {
+            return "SELECT LAST_INSERT_ID()";
+        }
     }
 }

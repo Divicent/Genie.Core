@@ -30,5 +30,10 @@ namespace Genie.Core.Infrastructure.Querying.Strategies
 
             return builder.ToString();
         }
+
+        internal override string GetId()
+        {
+            return "SELECT @@IDENTITY id";
+        }
     }
 }

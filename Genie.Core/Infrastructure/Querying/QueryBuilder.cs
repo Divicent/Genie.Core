@@ -53,15 +53,15 @@ namespace Genie.Core.Infrastructure.Querying
 			    .Build();
 	    }
 
-	    internal static string Insert(BaseModel entityToInsert)
+	    internal string Insert(BaseModel entityToInsert)
 	    {
 		    var parameters = Cache.GetInsertParameters(entityToInsert);
-		    return $"insert into {parameters.Item1} ({parameters.Item2}) values ({parameters.Item3})";
+		    return $"INSERT INTO {parameters.name} ({parameters.columnList}) VALUES ({parameters.parametersList})";
 	    }
 	    
-	    internal static string GetId()
+	    internal string GetId()
 	    {
-		    return "select @@IDENTITY id";
+		    return _strategy.GetId();
 	    }
 
 	    internal string Delete(BaseModel entity)

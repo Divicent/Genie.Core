@@ -39,4 +39,7 @@
         <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
         <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    </ItemGroup>
 </Project>
