@@ -53,50 +53,50 @@ namespace Genie.Core.Infrastructure
                 if (updated.Count > 0)
                     _operations.AddRange(updated.Select(u => new Operation(OperationType.Update, u)));
 
-                if (_operations.Count > 0)
+                if (_operations.Count <= 0)
+                    return;
+
+                var toAdd = _operations.Where(o => o.Type == OperationType.Add).ToList();
+                var toDelete = _operations.Where(o => o.Type == OperationType.Remove).ToList();
+                var toUpdate = _operations.Where(o => o.Type == OperationType.Update).ToList();
+
+                if (toDelete.Count > 0)
                 {
-                    var toAdd = _operations.Where(o => o.Type == OperationType.Add).ToList();
-                    var toDelete = _operations.Where(o => o.Type == OperationType.Remove).ToList();
-                    var toUpdate = _operations.Where(o => o.Type == OperationType.Update).ToList();
-
-					if (toDelete.Count > 0)
-					{
-                    	foreach (var operation in toDelete)
-						{
-                            var deleted = Context.GetConnection().Delete(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
-                            if (deleted) { operation.Object.__DatabaseModelStatus = ModelStatus.Deleted; }
-                        }
-					}
-
-					if (toAdd.Count > 0)
-					{
-                        var queryBuilder = new QueryBuilder(null, Context.QueryStrategy);
-                        foreach (var operation in toAdd)
-                        {
-                            var newId = Context.GetConnection().Insert(operation.Object, queryBuilder);
-                             if(newId != null)
-                                operation.Object.SetId((int)newId);
-                            operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
-                            if (operation.Object.__ActionsToRunWhenAdding != null && operation.Object.__ActionsToRunWhenAdding.Count > 0)
-                            {
-                                foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
-                                    addAction.Run();
-                                operation.Object.__ActionsToRunWhenAdding.Clear();
-                            }
-                        }
+                    foreach (var operation in toDelete)
+                    {
+                        var deleted = Context.GetConnection().Delete(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                        if (deleted) { operation.Object.__DatabaseModelStatus = ModelStatus.Deleted; }
                     }
-
-					if (toUpdate.Count > 0)
-					{
-						foreach (var operation in toUpdate)
-						{
-						    Context.GetConnection().Update(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
-                            operation.Object.__UpdatedProperties.Clear();
-                        }
-					}
-                    
-					_operations.Clear();
                 }
+
+                if (toAdd.Count > 0)
+                {
+                    var queryBuilder = new QueryBuilder(null, Context.QueryStrategy);
+                    foreach (var operation in toAdd)
+                    {
+                        var newId = Context.GetConnection().Insert(operation.Object, queryBuilder);
+                        if(newId != null)
+                            operation.Object.SetId((int)newId);
+                        operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
+                        if (operation.Object.__ActionsToRunWhenAdding == null ||
+                            operation.Object.__ActionsToRunWhenAdding.Count <= 0) continue;
+
+                        foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
+                            addAction.Run();
+                        operation.Object.__ActionsToRunWhenAdding.Clear();
+                    }
+                }
+
+                if (toUpdate.Count > 0)
+                {
+                    foreach (var operation in toUpdate)
+                    {
+                        Context.GetConnection().Update(operation.Object, new QueryBuilder(null, Context.QueryStrategy));
+                        operation.Object.__UpdatedProperties.Clear();
+                    }
+                }
+                    
+                _operations.Clear();
             }
             catch (Exception e)
             {
@@ -137,12 +137,13 @@ namespace Genie.Core.Infrastructure
                              if(newId != null)
                                 operation.Object.SetId((int)newId);
                             operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
-                            if (operation.Object.__ActionsToRunWhenAdding != null && operation.Object.__ActionsToRunWhenAdding.Count > 0)
-                            {
-                                foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
-                                    addAction.Run();
-                                operation.Object.__ActionsToRunWhenAdding.Clear();
-                            }
+
+                            if (operation.Object.__ActionsToRunWhenAdding == null ||
+                                operation.Object.__ActionsToRunWhenAdding.Count <= 0) continue;
+
+                            foreach (var addAction in operation.Object.__ActionsToRunWhenAdding)
+                                addAction.Run();
+                            operation.Object.__ActionsToRunWhenAdding.Clear();
                         }
                     }
 
