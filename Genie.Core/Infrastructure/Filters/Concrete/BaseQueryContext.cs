@@ -14,6 +14,8 @@ namespace Genie.Core.Infrastructure.Filters.Concrete
 
         protected abstract bool? IsQuoted(ref string propertyName);
 
+        protected abstract string FixStringValue(string propertyName, string value);
+
         protected void Sort(Queue<OrderExpression> queue, string property, bool asc)
         {
             var qotd = IsQuoted(ref property);
