@@ -55,8 +55,8 @@ namespace Genie.Core.Infrastructure.Querying
 
 	    internal string Insert(BaseModel entityToInsert)
 	    {
-		    var parameters = Cache.GetInsertParameters(entityToInsert);
-		    return $"INSERT INTO {parameters.name} ({parameters.columnList}) VALUES ({parameters.parametersList})";
+	        var parameters = Cache.GetInsertParameters(entityToInsert);
+	        return $"INSERT INTO {parameters.name} ({parameters.columnList}) VALUES ({parameters.parametersList})";
 	    }
 	    
 	    internal string GetId()
