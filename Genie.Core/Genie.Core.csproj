@@ -2,15 +2,15 @@
   <PropertyGroup>
       <TargetFrameworks>net452;netstandard1.3;netstandard2.0</TargetFrameworks>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-      <Version>1.0.0-beta-4</Version>
+      <Version>1.0.0-beta-6</Version>
       <Authors>Shanaka Rusith</Authors>
       <Company />      
       <Product>Genie</Product>
       <Description>This library provides core functionalities for data access layers generated using Genie CLI</Description>
       <Copyright>Shanaka Rusith</Copyright>
-      <PackageIconUrl>https://raw.githubusercontent.com/GenieDotNet/Genie.Core/dev/images/genie_logo.256.png</PackageIconUrl>
-      <PackageProjectUrl>https://github.com/GenieDotNet</PackageProjectUrl>
-      <RepositoryUrl>https://github.com/GenieDotNet/Genie.Core</RepositoryUrl>
+      <PackageIconUrl>https://raw.githubusercontent.com/divicent/Genie.Core/dev/images/genie_logo.256.png</PackageIconUrl>
+      <PackageProjectUrl>https://github.com/divicent/Genie.Core</PackageProjectUrl>
+      <RepositoryUrl>https://github.com/divicent/Genie.Core</RepositoryUrl>
       <PackageTags>genie,core,dal,database</PackageTags>
       <PackageReleaseNotes>Beta integration release</PackageReleaseNotes>
       <SignAssembly>true</SignAssembly>
