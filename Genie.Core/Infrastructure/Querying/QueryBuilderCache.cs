@@ -41,7 +41,7 @@ namespace Genie.Core.Infrastructure.Querying
             return keyProperties;
         }
 
-        private static IEnumerable<PropertyInfo> IdentityPropertiesCache(Type type)
+        internal static IEnumerable<PropertyInfo> IdentityPropertiesCache(Type type)
         {
             if (IdentityProperties.TryGetValue(type.TypeHandle, out var pi))
             {
@@ -69,7 +69,7 @@ namespace Genie.Core.Infrastructure.Querying
             return properties;
         }
         
-        internal static (string name, string columnList, string parametersList) GetInsertParameters(BaseModel entityToInsert)
+        internal static (string name, string columnList, string parametersList) GetInsertParameters(BaseModel entityToInsert, QueryStrategy strategy)
         {
             var type = entityToInsert.GetType();
 
@@ -78,15 +78,14 @@ namespace Genie.Core.Infrastructure.Querying
             var sbColumnList = new StringBuilder(null);
 
             var allProperties = TypePropertiesCache(type).ToList();
-            var keyProperties = KeyPropertiesCache(type).ToList();
             var identityProperties = IdentityPropertiesCache(type).ToList();
             var allPropertiesExceptIndentity = allProperties.Except(identityProperties).ToList();
 
             var index = 0;
-            var lst = allProperties.Count == keyProperties.Count ? keyProperties : allPropertiesExceptIndentity;
+            var lst = allPropertiesExceptIndentity;
             foreach (var property in lst)
             {
-                sbColumnList.AppendFormat("[{0}]", property.Name);
+                sbColumnList.Append(strategy.Enclose(property.Name));
                 if (index < lst.Count - 1)
                     sbColumnList.Append(", ");
                 index++;
@@ -97,7 +96,7 @@ namespace Genie.Core.Infrastructure.Querying
 
             foreach (var property in lst)
             {
-                sbParameterList.AppendFormat("@{0}", property.Name);
+                sbParameterList.Append($"@{property.Name}");
                 if (index < lst.Count - 1)
                     sbParameterList.Append(", ");
                 index++;

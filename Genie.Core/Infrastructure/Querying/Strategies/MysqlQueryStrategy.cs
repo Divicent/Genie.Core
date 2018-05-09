@@ -9,9 +9,8 @@ namespace Genie.Core.Infrastructure.Querying.Strategies
 
         internal override string Select(IRepoQuery query, bool isCount, QueryBuilder queryBuilder)
         {
-
             return
-                $"SELECT {0} FROM {query.Target} {(isCount ? "COUNT(*)" : queryBuilder.CreateSelectColumnList(query.Columns.ToList(), query.Target))}";
+                $"SELECT {(isCount ? "COUNT(*)" : queryBuilder.CreateSelectColumnList(query.Columns.ToList(), query.Target))} FROM {query.Target}";
         }
 
         internal override string Page(IRepoQuery query)

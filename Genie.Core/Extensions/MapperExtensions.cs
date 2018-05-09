@@ -17,25 +17,13 @@ namespace Genie.Core.Extensions
         /// <param name="entityToInsert">Entity to insert</param>
         /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static long? Insert(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
+        public static object Insert(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
                 var cmd = queryBuilder.Insert(entityToInsert);
-                connection.Execute(cmd, entityToInsert);
-                var r = connection.Query(queryBuilder.GetId()).ToList();
-                long id = 0;
-                if (r.Any())
-                {
-                    try
-                    {
-                        id = (long)r.First().id;
-                    }
-                    catch (Exception)
-                    { /*Ignored*/ }
-                }
-                return id;
+                return connection.ExecuteScalar(cmd, entityToInsert);
             }
         }
 
@@ -47,25 +35,13 @@ namespace Genie.Core.Extensions
         /// <param name="entityToInsert">Entity to insert</param>
         /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static async Task<long?> InsertAsync(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
+        public static async Task<object> InsertAsync(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
                 var cmd = queryBuilder.Insert(entityToInsert);
-                await connection.ExecuteAsync(cmd, entityToInsert);
-                var r = (await connection.QueryAsync(queryBuilder.GetId())).ToList();
-                long id = 0;
-                if (r.Any())
-                {
-                    try
-                    {
-                        id = (long)r.First().id;
-                    }
-                    catch (Exception)
-                    { /*Ignored*/ }
-                }
-                return id;
+                return await connection.ExecuteScalarAsync(cmd, entityToInsert);
             }
         }
 

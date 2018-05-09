@@ -76,7 +76,7 @@ namespace Genie.Core.Infrastructure
                     {
                         var newId = Context.GetConnection().Insert(operation.Object, queryBuilder);
                         if(newId != null)
-                            operation.Object.SetId((int)newId);
+                            operation.Object.SetId(newId);
                         operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
                         if (operation.Object.__ActionsToRunWhenAdding == null ||
                             operation.Object.__ActionsToRunWhenAdding.Count <= 0) continue;
@@ -135,7 +135,7 @@ namespace Genie.Core.Infrastructure
                         {
                             var newId = await Context.GetConnection().InsertAsync(operation.Object, queryBuilder);
                              if(newId != null)
-                                operation.Object.SetId((int)newId);
+                                operation.Object.SetId(newId);
                             operation.Object.__DatabaseModelStatus = ModelStatus.Retrieved;
 
                             if (operation.Object.__ActionsToRunWhenAdding == null ||
