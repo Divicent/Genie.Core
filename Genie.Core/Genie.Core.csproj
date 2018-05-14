@@ -2,7 +2,7 @@
   <PropertyGroup>
       <TargetFrameworks>net452;netstandard1.3;netstandard2.0</TargetFrameworks>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-      <Version>1.0.0-beta-6</Version>
+      <Version>1.0.1</Version>
       <Authors>Shanaka Rusith</Authors>
       <Company />      
       <Product>Genie</Product>
@@ -12,7 +12,9 @@
       <PackageProjectUrl>https://github.com/divicent/Genie.Core</PackageProjectUrl>
       <RepositoryUrl>https://github.com/divicent/Genie.Core</RepositoryUrl>
       <PackageTags>genie,core,dal,database</PackageTags>
-      <PackageReleaseNotes>Beta integration release</PackageReleaseNotes>
+      <PackageReleaseNotes>* Changed the way we handle the identity properties in the insert query
+* Minor bug fixes and code enhancements
+</PackageReleaseNotes>
       <SignAssembly>true</SignAssembly>
   </PropertyGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
