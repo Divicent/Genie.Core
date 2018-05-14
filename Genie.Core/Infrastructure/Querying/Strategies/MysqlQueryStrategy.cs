@@ -9,7 +9,8 @@ namespace Genie.Core.Infrastructure.Querying.Strategies
 
         internal override string Select(IRepoQuery query, bool isCount, QueryBuilder queryBuilder)
         {
-            return string.Format("select {0} from " + query.Target, isCount ? "count(*)" : queryBuilder.CreateSelectColumnList(query.Columns.ToList(), query.Target));
+            return
+                $"SELECT {(isCount ? "COUNT(*)" : queryBuilder.CreateSelectColumnList(query.Columns.ToList(), query.Target))} FROM {query.Target}";
         }
 
         internal override string Page(IRepoQuery query)
@@ -25,6 +26,11 @@ namespace Genie.Core.Infrastructure.Querying.Strategies
             }
 
             return null;
+        }
+
+        internal override string GetId()
+        {
+            return "SELECT LAST_INSERT_ID()";
         }
     }
 }

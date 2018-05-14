@@ -15,29 +15,17 @@ namespace Genie.Core.Extensions
         /// </summary>
         /// <param name="connection">Open SqlConnection</param>
         /// <param name="entityToInsert">Entity to insert</param>
+        /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static long? Insert(this IDbConnection connection, BaseModel entityToInsert)
+        public static object Insert(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
-                var cmd = QB.Insert(entityToInsert);
-                connection.Execute(cmd, entityToInsert);
-                var r = connection.Query(QB.GetId()).ToList();
-                long id = 0;
-                if (r.Any())
-                {
-                    try
-                    {
-                        id = (long)r.First().id;
-                    }
-                    catch (Exception)
-                    { /*Ignored*/ }
-                }
-                return id;
+                var cmd = queryBuilder.Insert(entityToInsert);
+                return connection.ExecuteScalar(cmd, entityToInsert);
             }
         }
-
 
 
         /// <summary>
@@ -45,26 +33,15 @@ namespace Genie.Core.Extensions
         /// </summary>
         /// <param name="connection">Open SqlConnection</param>
         /// <param name="entityToInsert">Entity to insert</param>
+        /// <param name="queryBuilder"></param>
         /// <returns>Identity of inserted entity</returns>
-        public static async Task<long?> InsertAsync(this IDbConnection connection, BaseModel entityToInsert)
+        public static async Task<object> InsertAsync(this IDbConnection connection, BaseModel entityToInsert, QB queryBuilder)
         {
             using (connection)
             {
                 connection.Open();
-                var cmd = QB.Insert(entityToInsert);
-                await connection.ExecuteAsync(cmd, entityToInsert);
-                var r = (await connection.QueryAsync(QB.GetId())).ToList();
-                long id = 0;
-                if (r.Any())
-                {
-                    try
-                    {
-                        id = (long)r.First().id;
-                    }
-                    catch (Exception)
-                    { /*Ignored*/ }
-                }
-                return id;
+                var cmd = queryBuilder.Insert(entityToInsert);
+                return await connection.ExecuteScalarAsync(cmd, entityToInsert);
             }
         }
 

@@ -4,7 +4,7 @@
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <Version>1.0.0-beta-6</Version>
       <Authors>Shanaka Rusith</Authors>
-      <Company />
+      <Company />      
       <Product>Genie</Product>
       <Description>This library provides core functionalities for data access layers generated using Genie CLI</Description>
       <Copyright>Shanaka Rusith</Copyright>
@@ -13,6 +13,7 @@
       <RepositoryUrl>https://github.com/divicent/Genie.Core</RepositoryUrl>
       <PackageTags>genie,core,dal,database</PackageTags>
       <PackageReleaseNotes>Beta integration release</PackageReleaseNotes>
+      <SignAssembly>true</SignAssembly>
   </PropertyGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
         <Reference Include="System" />
@@ -22,14 +23,14 @@
         <Reference Include="Microsoft.CSharp" />
         <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
-    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' OR '$(TargetFramework)' == 'netstandard2.0'">
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3' OR '$(TargetFramework)' == 'netstandard2.0'">
         <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
         <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
         <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
         <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
         <PackageReference Include="MySql.Data" Version="6.10.6" />
     </ItemGroup>
-    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3' ">
         <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
         <PackageReference Include="System.Collections.NonGeneric" Version="4.3.0" />
         <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
@@ -38,5 +39,8 @@
         <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
         <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
         <PackageReference Include="MySql.Data" Version="6.10.6" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="System.ValueTuple" Version="4.3.0" />
     </ItemGroup>
 </Project>

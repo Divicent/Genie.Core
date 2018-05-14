@@ -29,9 +29,7 @@ namespace Genie.Core.Infrastructure.Querying
         
         internal static IEnumerable<PropertyInfo> KeyPropertiesCache(Type type)
         {
-
-            IEnumerable<PropertyInfo> pi;
-            if (KeyProperties.TryGetValue(type.TypeHandle, out pi))
+            if (KeyProperties.TryGetValue(type.TypeHandle, out var pi))
             {
                 return pi;
             }
@@ -43,11 +41,9 @@ namespace Genie.Core.Infrastructure.Querying
             return keyProperties;
         }
 
-        private static IEnumerable<PropertyInfo> IdentityPropertiesCache(Type type)
+        internal static IEnumerable<PropertyInfo> IdentityPropertiesCache(Type type)
         {
-
-            IEnumerable<PropertyInfo> pi;
-            if (IdentityProperties.TryGetValue(type.TypeHandle, out pi))
+            if (IdentityProperties.TryGetValue(type.TypeHandle, out var pi))
             {
                 return pi;
             }
@@ -61,8 +57,7 @@ namespace Genie.Core.Infrastructure.Querying
 
         internal static IEnumerable<PropertyInfo> TypePropertiesCache(Type type)
         {
-            IEnumerable<PropertyInfo> pis;
-            if (TypeProperties.TryGetValue(type.TypeHandle, out pis))
+            if (TypeProperties.TryGetValue(type.TypeHandle, out var pis))
             {
                 return pis;
             }
@@ -74,7 +69,7 @@ namespace Genie.Core.Infrastructure.Querying
             return properties;
         }
         
-        internal static Tuple<string, string, string> GetInsertParameters(BaseModel entityToInsert)
+        internal static (string name, string columnList, string parametersList) GetInsertParameters(BaseModel entityToInsert, QueryStrategy strategy)
         {
             var type = entityToInsert.GetType();
 
@@ -83,15 +78,14 @@ namespace Genie.Core.Infrastructure.Querying
             var sbColumnList = new StringBuilder(null);
 
             var allProperties = TypePropertiesCache(type).ToList();
-            var keyProperties = KeyPropertiesCache(type).ToList();
             var identityProperties = IdentityPropertiesCache(type).ToList();
             var allPropertiesExceptIndentity = allProperties.Except(identityProperties).ToList();
 
             var index = 0;
-            var lst = allProperties.Count == keyProperties.Count ? keyProperties : allPropertiesExceptIndentity;
+            var lst = allPropertiesExceptIndentity;
             foreach (var property in lst)
             {
-                sbColumnList.AppendFormat("[{0}]", property.Name);
+                sbColumnList.Append(strategy.Enclose(property.Name));
                 if (index < lst.Count - 1)
                     sbColumnList.Append(", ");
                 index++;
@@ -102,19 +96,18 @@ namespace Genie.Core.Infrastructure.Querying
 
             foreach (var property in lst)
             {
-                sbParameterList.AppendFormat("@{0}", property.Name);
+                sbParameterList.Append($"@{property.Name}");
                 if (index < lst.Count - 1)
                     sbParameterList.Append(", ");
                 index++;
             }
 
-            return new Tuple<string, string, string>(name, sbColumnList.ToString(), sbParameterList.ToString());
+            return (name, sbColumnList.ToString(), sbParameterList.ToString());
         }
         
         internal static string GetTableName(Type type)
         {
-            string name;
-            if (TypeTableName.TryGetValue(type.TypeHandle, out name)) return name;
+            if (TypeTableName.TryGetValue(type.TypeHandle, out var name)) return name;
             name = type.Name + "s";
             if (type.GetTypeInfo().IsInterface && name.StartsWith("I"))
                 name = name.Substring(1);
