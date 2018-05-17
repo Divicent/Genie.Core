@@ -21,6 +21,8 @@ namespace Genie.Core.Infrastructure.Interfaces
 
         ConcurrentDictionary<string, object> Repos { get; set; }
 
+        IProcedureContainer Procedures { get; }
+
         void AddOp(IOperation operation);
         void AddObj(BaseModel obj);
 
